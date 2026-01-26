@@ -12,6 +12,7 @@ description: リポジトリを公開する前に、機密情報や不適切な�
 ### 1. 必須ファイルの存在確認
 - [ ] `README.md` が存在すること
 - [ ] `LICENSE` または `LICENCE` ファイルが存在すること
+- [ ] `.gitignore` が存在すること
 
 ### 2. 機密情報のチェック
 以下のパターンがリポジトリに含まれていないことを確認してください。
@@ -20,11 +21,19 @@ description: リポジトリを公開する前に、機密情報や不適切な�
 - [ ] 秘密鍵ファイル（`*.pem`, `*.key`, `id_rsa`, `id_ed25519` など）
 - [ ] AWS アクセスキー（`AKIA` で始まる文字列）
 - [ ] API キー・トークン（`api_key`, `apikey`, `access_token`, `secret_key` など）
-- [ ] `.env` ファイルに実際の認証情報が含まれていないこと
+- [ ] GitHub トークン（`ghp_`, `gho_`, `ghu_` で始まる文字列）
+- [ ] Slack トークン（`xoxb-`, `xoxp-` で始まる文字列）
+- [ ] Google API キー（`AIza` で始まる文字列）
+- [ ] JWT トークン（`eyJ` で始まる長い文字列）
+- [ ] データベース接続文字列（`mongodb://`, `postgres://`, `mysql://` など）
+
+#### .env ファイル
+- [ ] `.env` ファイルがコミットされていないこと
+- [ ] `.env.local`, `.env.production` などの環境ファイルがコミットされていないこと
+- [ ] `.env.example` や `.env.sample` に実際の認証情報が含まれていないこと
 
 #### パスワード
 - [ ] ハードコードされたパスワード（`password =`, `passwd =`, `pwd =` など）
-- [ ] データベース接続文字列に含まれるパスワード
 
 #### 個人的な環境パス
 - [ ] `/Users/<username>/` のような個人のホームディレクトリパス
@@ -43,22 +52,41 @@ description: リポジトリを公開する前に、機密情報や不適切な�
 
 ## チェック手順
 
-1. `README.md` と `LICENSE`/`LICENCE` ファイルの存在を確認
+1. `README.md`、`LICENSE`/`LICENCE`、`.gitignore` ファイルの存在を確認
 2. `git ls-files` でトラッキングされているファイル一覧を取得
-3. 機密情報のパターンを grep で検索
-4. 検出された問題をレポート
+3. `.env` ファイルがコミットされていないか確認
+4. 機密情報のパターンを grep で検索
+5. 検出された問題をレポート
 
 ## 実行例
 
 ```bash
 # 必須ファイルの確認
-ls README.md LICENSE LICENCE 2>/dev/null
+ls README.md LICENSE LICENCE .gitignore 2>/dev/null
+
+# .env ファイルがコミットされていないか確認
+git ls-files | grep -E '^\.env($|\.)'
 
 # 秘密鍵ファイルの検索
 git ls-files | grep -E '\.(pem|key)$|id_rsa|id_ed25519'
 
 # AWS キーのパターン検索
 git grep -E 'AKIA[A-Z0-9]{16}'
+
+# GitHub トークンの検索
+git grep -E 'gh[pousr]_[A-Za-z0-9_]{36,}'
+
+# Slack トークンの検索
+git grep -E 'xox[baprs]-[A-Za-z0-9-]+'
+
+# Google API キーの検索
+git grep -E 'AIza[A-Za-z0-9_-]{35}'
+
+# JWT トークンの検索
+git grep -E 'eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*'
+
+# データベース接続文字列の検索
+git grep -E '(mongodb|postgres|mysql|redis)://[^/\s]+'
 
 # パスワードパターンの検索
 git grep -iE '(password|passwd|pwd)\s*[=:]\s*["\x27][^"\x27]+'

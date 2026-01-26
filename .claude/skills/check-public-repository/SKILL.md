@@ -50,13 +50,29 @@ description: リポジトリを公開する前に、機密情報や不適切な�
 - [ ] クレジットカード番号のようなパターン
 - [ ] マイナンバーのようなパターン
 
+### 3. 不要ファイルのチェック
+
+#### OS 生成ファイル
+- [ ] `.DS_Store`（macOS）
+- [ ] `Thumbs.db`（Windows）
+- [ ] `desktop.ini`（Windows）
+- [ ] `._*` ファイル（macOS リソースフォーク）
+
+#### IDE・エディタ設定ファイル
+- [ ] `.idea/`（JetBrains 系 IDE）
+- [ ] `.vscode/settings.json`（VS Code の個人設定）
+- [ ] `*.swp`, `*.swo`（Vim スワップファイル）
+- [ ] `*~`（バックアップファイル）
+- [ ] `.project`, `.classpath`（Eclipse）
+
 ## チェック手順
 
 1. `README.md`、`LICENSE`/`LICENCE`、`.gitignore` ファイルの存在を確認
 2. `git ls-files` でトラッキングされているファイル一覧を取得
 3. `.env` ファイルがコミットされていないか確認
-4. 機密情報のパターンを grep で検索
-5. 検出された問題をレポート
+4. OS 生成ファイル・IDE 設定ファイルがコミットされていないか確認
+5. 機密情報のパターンを grep で検索
+6. 検出された問題をレポート
 
 ## 実行例
 
@@ -96,6 +112,12 @@ git grep -E '/(Users|home)/[a-zA-Z0-9_-]+/'
 
 # メールアドレスの検索（example.com/org 以外）
 git grep -E '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | grep -v 'example\.\(com\|org\)'
+
+# OS 生成ファイルの検索
+git ls-files | grep -E '\.DS_Store|Thumbs\.db|desktop\.ini|^\._'
+
+# IDE・エディタ設定ファイルの検索
+git ls-files | grep -E '\.idea/|\.vscode/settings\.json|\.swp$|\.swo$|~$|\.project|\.classpath'
 ```
 
 ## 注意事項
